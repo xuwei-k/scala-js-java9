@@ -1,0 +1,23 @@
+sudo: required
+dist: trusty
+group: edge
+language: scala
+scala:
+- 2.12.1
+jdk:
+- oraclejdk9
+script:
+# https://github.com/sbt/sbt/pull/2951
+- git clone https://github.com/retronym/java9-rt-export
+- cd java9-rt-export/
+- jdk_switcher use oraclejdk8
+- sbt package
+- jdk_switcher use oraclejdk9
+- mkdir -p $HOME/.sbt/0.13/java9-rt-ext; java -jar target/java9-rt-export-*.jar $HOME/.sbt/0.13/java9-rt-ext/rt.jar
+- jar tf $HOME/.sbt/0.13/java9-rt-ext/rt.jar | grep java/lang/Object
+- cd ..
+- sbt -Dscala.ext.dirs=$HOME/.sbt/0.13/java9-rt-ext testJava9JVM/run testJava9JS/run
+addons:
+  apt:
+    packages:
+    - oracle-java8-installer
